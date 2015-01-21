@@ -1,0 +1,35 @@
+<launch>
+  <!-- Launch the Novatel GPS Driver node -->
+  <node pkg="novatel_gps_driver" type="novatel_gps_driver.py" name="novatel_gps_driver" output="screen">
+    <param name="port" value="/dev/ttyUSB4" type="string"/>
+    <param name="baud" value="57600" type="int"/>
+  </node>
+<!-- Publish the static transform from base_link to gps -->
+  <node pkg="tf" type="static_transform_publisher" name="tf_publisher_gps" args="-.45 0 0 0 0 0 base_link base_gps 100"/>
+
+  <!-- Pass the map name as an argument from the command line. -->
+  <!-- North map "roslaunch start_novatel_gps.launch map:="map1"" -->
+  <!-- South map "roslaunch start_novatel_gps.launch map:="map2"" -->
+  <!-- Outside Glennan "roslaunch start_novatel_gps.launch map:="glennan""-->
+  <arg name="map" default=""/>
+    <!-- Load the alignment points for all the  maps -->
+    <!-- the paramters are the LAT, LON, and ALT or the origin and a point along the y-axis, which is used to translate and rotate the LLA frame into the appropriate map fram -->
+    <rosparam command="load" file="$(find snowmower_bot_drivers)/launch/map_alignment_points.yaml" />
+
+  <!-- Run the GPS conversion from LLA to Pose and transform it into the appropriate map coordinates -->
+  <node pkg="snowmower_bot_drivers" type="gps_convert_and_transform" name="gps_convert_and_transform" output="screen">
+    <!-- the node will look for parameters with no namespace. Let's remap them to the correct map's namespace. -->
+    <remap from="originLat" to="$(arg map)/originLat"/>
+    <remap from="originLon" to="$(arg map)/originLon"/>
+    <remap from="originAlt" to="$(arg map)/originAlt"/>
+
+    <remap from="yPtLat" to="$(arg map)/yPtLat"/>
+    <remap from="yPtLon" to="$(arg map)/yPtLon"/>
+    <remap from="yPtAlt" to="$(arg map)/yPtAlt"/>
+
+    <param name="gps" value="gps_fix" type="string"/>
+    <param name="vel" value="gps_vel" type="string"/>
+    <param name="pose" value="gps_pose" type="string"/>
+  </node>
+  <!-- <include file="$(find cutter_bot_drivers)/launch/gps_conversion.launch" /> -->
+</launch>

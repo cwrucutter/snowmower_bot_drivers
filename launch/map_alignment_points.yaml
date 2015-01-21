@@ -1,0 +1,34 @@
+originLat: 0
+originLon: 0
+originAlt: 0
+
+yPtLat: 0
+yPtLon: 1
+yPtAlt: 0
+
+map1:
+  originLat: 0
+  originLon: 0
+  originAlt: 0
+
+  yPtLat: 1
+  yPtLon: 1
+  yPtAlt: 0
+
+map2:
+  originLat: 0
+  originLon: 1
+  originAlt: 0
+
+  yPtLat: 1
+  yPtLon: 2
+  yPtAlt: 0
+
+glennan:
+  originLat: 0
+  originLon: 0
+  originAlt: 0
+
+  yPtLat: 5
+  yPtLon: 1
+  yPtAlt: 0
