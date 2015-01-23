@@ -48,7 +48,7 @@ class Surveyor:
         rospy.init_node('gps_survey')
         topic_in  = rospy.get_param('~topic_in','/gps_fix')
         filename = rospy.get_param('~filename','survey.txt')
-        window_size = rospy.get_param('~window_size',10) # magic number 10 would be (GPScallbackHz)*(windowlengthinseconds), assuming 10Hz and 1-second window
+        self.window_size = rospy.get_param('~window_size',10) # magic number 10 would be (GPScallbackHz)*(windowlengthinseconds), assuming 10Hz and 1-second window
         self.file = roslib.packages.get_pkg_dir('snowmower_bot_drivers')+'/survey/'+filename
         
         rospy.loginfo('Subscribing to: '+topic_in)
@@ -57,14 +57,16 @@ class Surveyor:
         # Initialize
         self.coords = (0.0, 0.0, 0.0)
         self.average = (0.0, 0.0, 0.0)
-        self.history = collections.deque(maxlen=window_size)  
-        
+        self.history = collections.deque(maxlen=self.window_size)  
+        self.i = 0 # start a counter
+
         # Start the ROS stuff
         rospy.Subscriber(topic_in, NavSatFix, self.GPSCallback)
         rospy.spin()
 
         
     def GPSCallback(self, data):
+        self.i = self.i +1
         # GPS Calback: Called when a new gps point arrives
         self.coords = (data.latitude, data.longitude, data.altitude)
         self.history.append(self.coords)
@@ -74,14 +76,12 @@ class Surveyor:
                 self.average[0], self.average[1], self.average[2])) 
         sys.stdout.flush()
 
-    def SurveyServer(self, req):
-        # Survey Server: Called to record the point
-        #rospy.loginfo("Surveying... LastPoint: %s ", ('%f, %f, %f' % self.coords) )
-        rospy.loginfo("Surveying... AveragePoint: %s ", ('%f, %f, %f' % self.average) )
-        with open(self.file,'a') as f:
+        if self.i >= self.window_size:
+            rospy.loginfo("Surveying... AveragePoint: %s ", ('%f, %f, %f' % self.average) )
+            with open(self.file,'a') as f:
             #write_data = f.write(str('%f, %f, %f\n' % self.coords))
                 write_data = f.write(str('%f, %f, %f\n' % self.average))
-        return []
+            rospy.signal_shutdown("Enough GPS points recieved.")
 
 def mean(l):
     return float(sum(l))/len(l) if len(l) > 0 else float('nan')

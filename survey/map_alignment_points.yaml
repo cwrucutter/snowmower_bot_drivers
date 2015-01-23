@@ -7,13 +7,13 @@ yPtLon: 1
 yPtAlt: 0
 
 map1:
-  originLat: 0
-  originLon: 0
-  originAlt: 0
+  originLat: 44.944152
+  originLon: -93.097100
+  originAlt: 241.637226
 
-  yPtLat: 1
-  yPtLon: 1
-  yPtAlt: 0
+  yPtLat: 44.944147
+  yPtLon: -93.097076
+  yPtAlt: 241.371473
 
 map2:
   originLat: 0
