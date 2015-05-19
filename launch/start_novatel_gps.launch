@@ -14,7 +14,7 @@
   <arg name="map" default=""/>
     <!-- Load the alignment points for all the  maps -->
     <!-- the paramters are the LAT, LON, and ALT or the origin and a point along the y-axis, which is used to translate and rotate the LLA frame into the appropriate map fram -->
-    <rosparam command="load" file="$(find snowmower_bot_drivers)/launch/map_alignment_points.yaml" />
+    <rosparam command="load" file="$(find snowmower_bot_drivers)/survey/map_alignment_points.yaml" />
 
   <!-- Run the GPS conversion from LLA to Pose and transform it into the appropriate map coordinates -->
   <node pkg="snowmower_bot_drivers" type="gps_convert_and_transform" name="gps_convert_and_transform" output="screen">
