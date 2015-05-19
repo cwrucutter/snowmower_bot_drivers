@@ -68,33 +68,29 @@ public:
   CutterGPSConversion();
 
 private:
+  // The callback function is called when a NavSatFix message is published to the topic gps_fix (default). The received message is the stored in the global variable fix_.
   void gpsCallback(const sensor_msgs::NavSatFix& gps);
-  void velCallback(const geometry_msgs::TwistStamped& vel);
-  void publishState();
-  bool checkForMessages();
-  void transformENU2MAP();
-
   sensor_msgs::NavSatFix fix_;
-  geometry_msgs::TwistStamped vel_;
-  bool fix_rcv_;
-  bool vel_rcv_;
-  
+
+  void publishState();
+
+  // The following two variables a_ and mapOriginENU_ are used to transform the GPS measurement (after it's converted from LLA to ENU) into the map coordinate system. They will be calculated using GPS measurements of the origin of the map and a point along the y-axis of the map.
+  // This is the rotation angle to align the vector in ENU with the map
+  double a_;
+  // This is the map's origin in ENU
+  geometry_msgs::Point mapOriginENU_;
+
+  // ROS stuff (the node, a publisher for the PoseWithCovarianceStamped (no orientation), and a subscriber for the NavSatFix)
   ros::NodeHandle node_;
   ros::Publisher  pose_pub_;
   ros::Subscriber gps_sub_;
   ros::Subscriber vel_sub_;
  
-  sensor_msgs::NavSatFix originRef_;
-  sensor_msgs::NavSatFix yPtRef_;
-  // Make a Point called yPt to store the yPtENU in ENU
-  geometry_msgs::Point yPtENU_;
-  // Make an Point called originPtENU to store the origin in ENU
-  geometry_msgs::Point originPtENU_;
 };
 
 CutterGPSConversion::CutterGPSConversion()
 {
-  // Get parameters
+  // Get parameters - the lat, long, and alt are taken for a point at the origin of the map and a point along the y-axis of the map. These can be used to determine a_ and mapOriginENU_ that are used to transform points into the map coordinate system. These measurements are typically stored in a file called map_alignment_points.yaml.
   double originLat, originLon, originAlt, yPtLat, yPtLon, yPtAlt;
   if (!(node_.getParam("originLat",originLat) &&
         node_.getParam("originLon",originLon) &&
@@ -104,28 +100,45 @@ CutterGPSConversion::CutterGPSConversion()
 	node_.getParam("yPtAlt",yPtLon)))
     {
       // Provide a default reference point if there's no reference params
-      originLat = 41.5012408976;
-      originLon = -81.6063695197;
-      originAlt = 216;
-      yPtLat = 41.5012408976;
-      yPtLon = -81.6064695197;
-      yPtAlt = 216;
+      originLat = 0;
+      originLon = 0;
+      originAlt = 0;
+      yPtLat = 1;
+      yPtLon = 0;
+      yPtAlt = 0;
       ROS_WARN("Reference parameters not found (orignLat, originLon, originAlt, yPtLat, yPtLon, yPtAlt). Using defaults");
     }
-  originRef_.latitude  = originLat;
-  originRef_.longitude = originLon;
-  originRef_.altitude  = originAlt;
 
-  yPtRef_.latitude = yPtLat;
-  yPtRef_.longitude = yPtLon;
-  yPtRef_.altitude = yPtLon;
+  // Messages to store the origin and the point along the y-axis in LLA
+  sensor_msgs::NavSatFix originRef;
+  sensor_msgs::NavSatFix yPtRef;
+  // Make a Point called yPtENU to store the yPtENU in ENU
+  geometry_msgs::Point yPtENU;
+  // Make a Point called originPtENU to store the origin in ENU
+  geometry_msgs::Point originPtENU;
+
+  // Populate originRef and yPtRef with the parameters from above.
+  originRef.latitude  = originLat;
+  originRef.longitude = originLon;
+  originRef.altitude  = originAlt;
+
+  yPtRef.latitude = yPtLat;
+  yPtRef.longitude = yPtLon;
+  yPtRef.altitude = yPtLon;
   
-  // Convert originRef_ from LLA to ENU and store in originPtENU
-  GPS_Equations::LLA2ENU(originRef_,originPtENU_);
-  // Convert yPtRef_ from LLA to ENU and store in yPtENU
-  GPS_Equations::LLA2ENU(yPtRef_,yPtENU_);
-  // Now we have the originPt and yPt in ENU.
-  // We will use these to make a transormation from ENU fram to the map frame each time we get a NavSatFix from the GPS.
+  // Convert originRef_ from LLA to ENU and store in originPtENU. originPtENU goes in empty and comes back with the converted originRef.
+  GPS_Equations::LLA2ENU(originRef,originPtENU);
+  // Convert yPtRef_ from LLA to ENU and store in yPtENU. Again, yPtENU goes in empty and comes back with the converted yPtRef.
+  GPS_Equations::LLA2ENU(yPtRef,yPtENU);
+  // Now we have the originPt and yPt in ENU. If we consider the originPt and yPt to form a vector parallel to the y-axis in the MAP frame, then we can find the rotation angle necessary to transform robot coordinates from the ENU frame to the MAP frame.
+  a_ = atan2(yPtENU.x-originPtENU.x,yPtENU.y-originPtENU.y);
+  mapOriginENU_ = originPtENU;
+
+  // The rest of the the algorithm works as such.
+  // 1. Take a GPS reading of the robot.
+  // 2. Convert it to ENU.
+  // 3. Subtract the coordinates of the map's origin in ENU (originPtENU).
+  // 4. Rotate it to get the coordinates of the robot in the map frame.
 
   // Get topic names to subscribe/publish
   std::string gps, pose, vel;
@@ -146,38 +159,33 @@ CutterGPSConversion::CutterGPSConversion()
   pose_pub_ = node_.advertise<geometry_msgs::PoseStamped>(pose,1);
 #endif
   gps_sub_ = node_.subscribe(gps, 1, &CutterGPSConversion::gpsCallback, this);
-  vel_sub_ = node_.subscribe(vel, 1, &CutterGPSConversion::velCallback, this);
 }
 
 void CutterGPSConversion::publishState()
 {
-  fix_rcv_ = false;
-  vel_rcv_ = false;
-  
-  // Make a Point called point to store the robot position in ENU frame
+  // Make a Point called rPtENU to store the robot position in ENU frame
   geometry_msgs::Point rPtENU;
-  // and then convert fix_ from LLA to ENU and store in point
+  // and then convert fix_ from LLA to ENU and store in rPtENU
   GPS_Equations::LLA2ENU(fix_,rPtENU);
 
-  // Now using originPt, yPt, and point (which are all in the ENU frame), convert point to point in the map frame.
-  geometry_msgs::Point rPtMap;
-  GPS_Equations::ENU2MAP(rPtENU,originPtENU_,yPtENU_,rPtMap);
+  // Now using the map origin (ENU) (mapOriginENU_), the robot location (ENU) (rPtENU), and the rotation angle (a_) to transform to the robot's location from the ENU frame to the map frame.
+  geometry_msgs::Point rPtMap; // The robot's location in the map frame.
+  rPtMap.x = (rPtENU.x-mapOriginENU_.x)*cos(a_)-(rPtENU.y-mapOriginENU_.y)*sin(a_);
+  rPtMap.y = (rPtENU.x-mapOriginENU_.x)*sin(a_)+(rPtENU.y-mapOriginENU_.y)*cos(a_);
 
+  // Now use rPtMap to populate the header, position, and covariance portions of a PoseWithCovarianceStamped message. (No orientation.)
   ros::Time current_time = ros::Time::now();  
 
 #if USE_COVARIANCE
   // Pose message: Setup header
   geometry_msgs::PoseWithCovarianceStamped pose_msg;
-  pose_msg.header.stamp = fix_.header.stamp; //TODO: Should I use the current time or use the time from the gps message??
-  pose_msg.header.frame_id = "gps_map";
+  pose_msg.header.stamp = fix_.header.stamp;
+  pose_msg.header.frame_id = "map";
 
   // Pose message: Set the pose
   pose_msg.pose.pose.position = rPtMap;
 
-  // Pose message: Set the orientation
-  double trackAngle = atan2(vel_.twist.linear.y, vel_.twist.linear.x);
-  //ROS_INFO("Xvel: %f, Yvel: %f, angle: %f", vel_.twist.linear.x, vel_.twist.linear.y, trackAngle);
-  pose_msg.pose.pose.orientation = tf::createQuaternionMsgFromYaw(trackAngle);
+  // There are ways to determine velocity and heading from the GPS. However, these things are determined from a change in position. So, I think it makes sense to just use the position.
 
   // Pose message: Set the covariance
   // TODO: Set the covariance according to the NavSatFix message
@@ -185,16 +193,11 @@ void CutterGPSConversion::publishState()
 #else
   // Pose message: Setup header
   geometry_msgs::PoseStamped pose_msg;
-  pose_msg.header.stamp = fix_.header.stamp; //TODO: Should I use the current time or use the time from the gps message??
-  pose_msg.header.frame_id = "gps_map";
+  pose_msg.header.stamp = fix_.header.stamp;
+  pose_msg.header.frame_id = "map";
 
   // Pose message: Set the pose
   pose_msg.pose.position = rPtMap;
-
-  // Pose message: Set the orientation
-  double trackAngle = atan2(vel_.twist.linear.y, vel_.twist.linear.x);
-  //ROS_INFO("Xvel: %f, Yvel: %f, angle: %f", vel_.twist.linear.x, vel_.twist.linear.y, trackAngle);
-  pose_msg.pose.orientation = tf::createQuaternionMsgFromYaw(trackAngle);
 #endif
 
   // Publish the state
@@ -205,27 +208,8 @@ void CutterGPSConversion::publishState()
 void CutterGPSConversion::gpsCallback(const sensor_msgs::NavSatFix& gps)
 {
   fix_ = gps;
-  fix_rcv_ = true;
   //ROS_INFO("Received gps fix");
-  if (checkForMessages())
-    publishState();
-}
-
-void CutterGPSConversion::velCallback(const geometry_msgs::TwistStamped& vel)
-{
-  vel_ = vel;
-  vel_rcv_ = true;
-  //ROS_INFO("Received gps velocity");
-  if (checkForMessages())
-    publishState();
-}
-
-bool CutterGPSConversion::checkForMessages()
-{
-  if (fix_rcv_ && vel_rcv_) // Check if we have both messages
-    return (fix_.header.stamp - vel_.header.stamp) < ros::Duration(.5); // Compare the time stamps
-  else
-    return false;
+  publishState();
 }
 
 int main(int argc, char** argv)
