@@ -37,6 +37,7 @@
 #include <math.h>
 #include <sensor_msgs/NavSatFix.h>
 #include <geometry_msgs/Point.h>
+#include <stdio.h>
 
 namespace GPS_Equations{
 
@@ -78,32 +79,17 @@ namespace GPS_Equations{
     return;
   }
 
-  static void ENU2MAP(geometry_msgs::Point &rPtENU,geometry_msgs::Point &originPtENU,geometry_msgs::Point &yPtENU,geometry_msgs::Point &rPtMap)
+  // rPtENU - the x,y,(z) point of the robot in ENU space (z isn't used).
+  // originPtENU - the x,y,(z) point of the Map origin in ENU space.
+  // a - after the rPtENU points are translated to by originPtENU,
+  //     this is the angle that the vector must be rotated.
+  // rPtMap - rPtMap is calculated by rotating the the translated point
+  //          by the angle a.
+  static void ENU2MAP(geometry_msgs::Point &rPtENU,geometry_msgs::Point &originPtENU,double a,geometry_msgs::Point &rPtMap)
   {
-    double x = rPtENU.x;
-    double y = rPtENU.y;
-    double xo = originPtENU.x;
-    double yo = originPtENU.y;
-
-    double y_axis_map_x = yPtENU.x - xo;
-    double y_axis_map_y = yPtENU.y - yo;
-    double norm_y_axis_map = sqrt(y_axis_map_x*y_axis_map_x+y_axis_map_y*y_axis_map_y);
-
-    double y_axis_gps_x = 0;
-    double y_axis_gps_y = 1;
-    double norm_y_axis_gps = sqrt(y_axis_gps_x*y_axis_gps_x+y_axis_gps_y*y_axis_gps_y);
-
-    // calculate the angle to rotate in radian between map and ENU
-    double a = acos((y_axis_map_x*y_axis_gps_x)+(y_axis_map_y*y_axis_gps_y)/(norm_y_axis_map*norm_y_axis_gps));
-
-    double position_map_x = (x-xo)*cos(a)+(y-yo)*sin(a);
-    double position_map_y = (y-yo)*cos(a)-(x-xo)*sin(a);
-
-    rPtMap.x = position_map_x;
-    rPtMap.y = position_map_y;
+    rPtMap.x = (rPtENU.x-originPtENU.x)*cos(a)-(rPtENU.y-originPtENU.y)*sin(a);
+    rPtMap.y = (rPtENU.x-originPtENU.x)*sin(a)+(rPtENU.y-originPtENU.y)*cos(a);
   }
-
 }
-
 
 #endif
