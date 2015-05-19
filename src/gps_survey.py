@@ -80,7 +80,7 @@ class Surveyor:
             rospy.loginfo("Surveying... AveragePoint: %s ", ('%f, %f, %f' % self.average) )
             with open(self.file,'a') as f:
             #write_data = f.write(str('%f, %f, %f\n' % self.coords))
-                write_data = f.write(str('%f, %f, %f\n' % self.average))
+                write_data = f.write(str('  Lat: %f\n  Lon:%f\n  Alt:%f\n' % self.average))
             rospy.signal_shutdown("Enough GPS points recieved.")
 
 def mean(l):
