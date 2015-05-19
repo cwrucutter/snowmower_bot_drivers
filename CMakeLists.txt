@@ -104,6 +104,7 @@ include_directories(include)
 ## Declare a cpp executable
 # add_executable(snowmower_bot_drivers_node src/snowmower_bot_drivers_node.cpp)
 add_executable(gps_convert_and_transform src/gps_convert_and_transform.cpp)
+add_executable(atan2test src/atan2test.cpp)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
@@ -111,6 +112,7 @@ add_executable(gps_convert_and_transform src/gps_convert_and_transform.cpp)
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(gps_convert_and_transform ${catkin_LIBRARIES})
+target_link_libraries(atan2test ${catkin_LIBRARIES})
 
 
 #############
