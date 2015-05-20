@@ -1,0 +1,6 @@
+<launch>
+<node pkg="crio_driver" type="crio_driver.py" name="crio_driver" output="screen">
+<param name="port" value="/dev/serial/by-id/usb-UTEK_USB__-__Serial_Cable_FTXGFQR4-if02-port0" type="string"/>
+<param name="baud" value="57600" type="int"/>
+</node>
+</launch>
