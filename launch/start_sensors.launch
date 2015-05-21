@@ -4,7 +4,7 @@
   <include file="$(find snowmower_bot_drivers)/launch/start_crio.launch" />
 
   <!-- Start up the gps -->
-  <include file="$(find snowmower_bot_drivers)/launch/start_gps.launch" />
+  <include file="$(find snowmower_bot_drivers)/launch/start_novatel_gps.launch" />
 
   <!-- Start up the lidar -->
   <include file="$(find snowmower_bot_drivers)/launch/start_lidar.launch" />
