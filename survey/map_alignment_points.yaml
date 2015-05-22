@@ -7,22 +7,22 @@ yPtLon: 1
 yPtAlt: 0
 
 map1:
-  originLat: 44.944152
-  originLon: -93.097100
-  originAlt: 241.637226
+  originLat: 41.5017052972
+  originLon:-81.6063293921
+  originAlt:216.3101249852
 
-  yPtLat: 44.944147
-  yPtLon: -93.097076
-  yPtAlt: 241.371473
+  yPtLat: 41.5017814148
+  yPtLon:-81.6062452565
+  yPtAlt:216.3623573694
 
 map2:
-  originLat: 0
-  originLon: 1
-  originAlt: 0
+  originLat: 41.5017344935
+  originLon:-81.6061445249
+  originAlt:216.8590723407
 
-  yPtLat: 1
-  yPtLon: 2
-  yPtAlt: 0
+  yPtLat: 41.5016206345
+  yPtLon:-81.6062501261
+  yPtAlt:216.7583888547
 
 glennan:
   originLat: 0
