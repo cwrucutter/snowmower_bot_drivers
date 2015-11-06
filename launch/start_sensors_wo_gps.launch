@@ -1,0 +1,20 @@
+<launch>
+
+  <!-- Start up the crio -->
+  <include file="$(find snowmower_bot_drivers)/launch/start_crio.launch" />
+
+  <!-- Start up the decawave -->
+  <include file="$(find snowmower_bot_drivers)/launch/start_decawave.launch" />
+
+  <!-- Start up the lidar -->
+  <include file="$(find snowmower_bot_drivers)/launch/start_lidar.launch" />
+
+  <!-- Start up the imu -->
+  <include file="$(find snowmower_bot_drivers)/launch/start_christa.launch" />
+
+  <!-- Start up visual odometry on arduino -->
+  <!-- Left (uses one arduino) -->
+  <node pkg="rosserial_python" type="serial_node.py" name="rosserial_vo_left" args="/dev/serial/by-id/usb-FTDI_FT232R_USB_UART_AH01466F-if00-port0" />
+  <node pkg="rosserial_python" type="serial_node.py" name="rosserial_vo_right" args="/dev/serial/by-id/usb-FTDI_TTL232R-3V3_FTE4MEDR-if00-port0" />
+
+</launch>
