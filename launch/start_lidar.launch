@@ -5,6 +5,5 @@
 <param name="baud" value="38400" type="int"/>
 </node>
 <!-- Publish the static transform from base_link to base_lidar -->
-<node pkg="tf" type="static_transform_publisher" name="tf_publisher_laser" args="-.88 0 .2 3.14159 0 0 base_link laser 100"/>
-<!-- TODO: Create a node that converts the Imu raw data into useable accelerations/ angular rates?? -->
+<node pkg="tf" type="static_transform_publisher" name="tf_publisher_laser" args="-.88 0 .2 0 0 0 base_link laser 100"/>
 </launch>
