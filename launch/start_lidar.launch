@@ -1,9 +1,9 @@
 <launch>
-<!-- Launch the Novatel GPS Driver node -->
+<!-- Launch the SICK LIDAR Toolbox node -->
 <node pkg="sicktoolbox_wrapper" type="sicklms" name="driver_lidar" output="screen">
 <param name="port" value="/dev/serial/by-id/usb-FTDI_USB_to_RS-422_485_Adapter_A7XEPJYZ-if00-port0" type="string"/>
 <param name="baud" value="38400" type="int"/>
 </node>
-<!-- Publish the static transform from base_link to base_lidar -->
-<node pkg="tf" type="static_transform_publisher" name="tf_publisher_laser" args="-.88 0 .2 0 0 0 base_link laser 100"/>
+<!-- Publish the static transform from base_link to base_laser -->
+<node pkg="tf2_ros" type="static_transform_publisher" name="tf_publisher_laser" args="0.2  0 .2 0 0 0 base_link laser"/>
 </launch>

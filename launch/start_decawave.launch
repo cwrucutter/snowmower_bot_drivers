@@ -6,7 +6,7 @@
   <param name="id" value="t0" type="string"/>
 </node>
 <!-- Publish the static transform from base_link to base_decawave0 -->
-<node pkg="tf" type="static_transform_publisher" name="tf_publisher_decawave0" args="-.15 0 0 0 0 0 base_link base_decawave_t0 100"/>
+<node pkg="tf2_ros" type="static_transform_publisher" name="tf_publisher_decawave0" args="-.15 0 0 0 0 0 base_link base_decawave_t0"/>
 
 <!-- Launch the DecaWave Driver node for T1 -->
 <!-- <node pkg="decawave_driver" type="decawave_driver.py" name="driver_decawave1" output="screen"> -->
@@ -15,5 +15,5 @@
   <!-- <param name="id" value="t1" type="string"/> -->
 <!-- </node> -->
 <!-- Publish the static transform from base_link to base_decawave1 -->
-<!-- <node pkg="tf" type="static_transform_publisher" name="tf_publisher_decawave1" args="-.15 0 0 0 0 0 base_link base_decawave1 100"/> -->
+<!-- <node pkg="tf2_ros" type="static_transform_publisher" name="tf_publisher_decawave1" args="-.15 0 0 0 0 0 base_link base_decawave_t1"/> -->
 </launch>
