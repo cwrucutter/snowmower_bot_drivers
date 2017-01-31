@@ -2,10 +2,11 @@
 <!-- Launch the SICK LIDAR Toolbox node -->
 <node pkg="sicktoolbox_wrapper" type="sicklms" name="driver_lidar" output="screen">
 <param name="port" value="/dev/serial/by-id/usb-FTDI_USB_to_RS-422_485_Adapter_A7XEPJYZ-if00-port0" type="string"/>
+<!-- <param name="port" value="/dev/ttyUSB0" type="string"/> -->
 <param name="baud" value="38400" type="int"/>
-<param name="angle" value="90" type="int"/>
-<param name="resolution" value="0.5" type="double"/>
-<!-- <param name="units" value="Centimeters (cm)" type="string"/> -->
+<param name="angle" value="180" type="int"/>
+<param name="resolution" value="1.0" type="double"/>
+<param name="units" value="Centimeters (cm)" type="string"/>
 </node>
 <!-- Publish the static transform from base_link to base_laser -->
 <!-- transform updated 01/14/2016 by Matthew Klein (mak177@case.edu) -->
