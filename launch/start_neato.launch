@@ -1,7 +1,7 @@
 <launch>
 <!-- Launch the Neato lidar node -->
 <node pkg="xv_11_laser_driver" type="neato_laser_publisher" name="neato_laser_publisher" output="screen">
-<param name="port" value="/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0" type="string"/>
+<param name="port" value="/dev/serial/by-id/usb-FTDI_FT232R_USB_UART_A600K4SB-if00-port0" type="string"/>
 <!-- <param name="port" value="/dev/ttyUSB0" type="string"/> -->
 <param name="baud_rate" value="115200" type="int"/>
 <!-- <param name="firmware_version" value="2" type="int"/> -->
