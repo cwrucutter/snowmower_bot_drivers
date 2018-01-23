@@ -7,7 +7,7 @@
   <include file="$(find snowmower_bot_drivers)/launch/start_decawave.launch" />
 
   <!-- Start up the lidar -->
-  <include file="$(find snowmower_bot_drivers)/launch/start_lidar.launch" />
+  <include file="$(find snowmower_bot_drivers)/launch/start_lms111.launch" />
 
   <!-- Start up the imu -->
   <include file="$(find snowmower_bot_drivers)/launch/start_christa.launch" />
